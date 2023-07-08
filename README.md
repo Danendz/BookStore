@@ -1,9 +1,26 @@
-This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+# [Next.js](https://nextjs.org/) проект под названием `BookStore`
 
-## Getting Started
+### Примененные технологии
+- [NextJS](https://nextjs.org/)
+- [TailwindCSS](https://tailwindcss.com/)
+- [Typescript](https://www.typescriptlang.org/)
+- [Zod](https://zod.dev/)
+- [Prisma](https://www.prisma.io/)
+- [shadcn](https://ui.shadcn.com/)
+- [PostgreSQL](https://www.postgresql.org/)
 
-First, run the development server:
+### Инструкция по запуску
 
+PostgreSQL:
+1. Запустить сервер через docker-compose файл или локально
+2. Создать файл .env и вписать в него:
+```env
+DATABASE_URL="postgresql://username:password@localhost:5432/book-store?schema=public"
+```
+3. username и password заменить на логин и пароль от базы данных
+
+NextJS:
+- Запустить приложение с помощью команд: 
 ```bash
 npm run dev
 # or
@@ -11,24 +28,3 @@ yarn dev
 # or
 pnpm dev
 ```
-
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
-
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
-
-This project uses [`next/font`](https://nextjs.org/docs/basic-features/font-optimization) to automatically optimize and load Inter, a custom Google Font.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js/) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/deployment) for more details.
