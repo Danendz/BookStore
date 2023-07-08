@@ -9,3 +9,55 @@ datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
+
+model User {
+  id          Int          @id @default(autoincrement())
+  name        String       @db.VarChar(255)
+  email       String       @db.VarChar(255) @unique
+  role        Role         @default(USER)
+  books       Book[]
+  collections Collection[]
+
+  @@map("user")
+}
+
+model Book {
+  id           Int         @id @default(autoincrement())
+  title        String      @db.VarChar(255)
+  description  String      @db.Text()
+  createdAt    DateTime    @default(now()) @map("created_at")
+  updatedAt    DateTime    @updatedAt @map("updated_at")
+  userId       Int
+  user         User        @relation(fields: [userId], references: [id])
+  collectionId Int?
+  collection   Collection? @relation(fields: [collectionId], references: [id])
+
+  @@map("book")
+}
+
+model Collection {
+  id             Int            @id @default(autoincrement())
+  collectionType CollectionType @map("collection_type")
+  book           Book[]
+  userId         Int
+  user           User           @relation(fields: [userId], references: [id])
+
+  @@unique([collectionType, userId])
+  @@map("collection")
+}
+
+enum Role {
+  USER
+  AUTHOR
+  ADMIN
+}
+
+enum CollectionType {
+  FAVORITES
+  HISTORY
+  WATCHING
+  PLANNING
+  WATCHED
+  POSTPONED
+  DROPPED
+}
