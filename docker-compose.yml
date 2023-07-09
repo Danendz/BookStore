@@ -4,14 +4,12 @@ services:
   postgres:
     image: postgres:latest
     container_name: book-store-postgres
-    volumes:
-      - dbdata:/data/db
+    restart: always
+    # volumes:
+    #   - ./data:/var/lib/postgresql/data
     environment:
       POSTGRES_DB: "book-store"
       POSTGRES_USER: "dev"
       POSTGRES_PASSWORD: "root"
     ports:
       - "5432:5432"
-
-volumes:
-  dbdata:
