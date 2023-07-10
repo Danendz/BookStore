@@ -1,4 +1,4 @@
-import { ZodError, z } from "zod"
+import { z } from 'zod';
 
 /**
  * Parse number to uint or throw error
@@ -7,10 +7,9 @@ import { ZodError, z } from "zod"
  * @throws {ZodError}
  */
 export const parseToUint = (str: string): number => {
-  const validNum = z.coerce.number().min(0)
-  return validNum.parse(str)
-}
+  return z.coerce.number().min(0).parse(str);
+};
 
 export const isDebug = () => {
-  return process.env.DEBUG
-}
+  return process.env.DEBUG === 'true';
+};

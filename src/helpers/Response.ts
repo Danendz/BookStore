@@ -1,23 +1,39 @@
-import { Response, StatusVariants } from "@/types/Response"
-import { NextResponse } from "next/server"
-import { ZodError } from "zod"
-import { isDebug } from "./Utils"
+import { NextResponse } from 'next/server';
+import { ZodError } from 'zod';
 
-type CustomNextResponse = NextResponse<Response>
+import type { Response } from '@/types/Response';
+import { StatusVariants } from '@/types/Response';
 
-const inputErrorResponse = (errors: ZodError): CustomNextResponse => {
-  return NextResponse.json({
-    status: StatusVariants.INPUT_ERROR,
-    errors: errors.issues.map((res) => ({ path: res.path, message: res.message }))
-  }, { status: 200 })
-}
+import { isDebug } from './Utils';
 
-const internalErrorResponse = (message: string, debugMessage: any = ""): CustomNextResponse => {
-  return NextResponse.json({
-    status: StatusVariants.INTERNAL_ERROR,
-    message: isDebug() ? debugMessage : message
-  }, { status: 200 })
-}
+type CustomNextResponse<T> = NextResponse<Response<T>>;
+
+const inputErrorResponse = (errors: ZodError): CustomNextResponse<unknown> => {
+  return NextResponse.json(
+    {
+      status: StatusVariants.INPUT_ERROR,
+      errors: errors.issues.map((res) => ({
+        path: res.path,
+        message: res.message,
+      })),
+    },
+    { status: 200 },
+  );
+};
+
+const internalErrorResponse = (
+  message: string,
+  debugMessage: unknown = '',
+  status: number,
+): CustomNextResponse<unknown> => {
+  return NextResponse.json(
+    {
+      status: StatusVariants.INTERNAL_ERROR,
+      message: isDebug() ? debugMessage : message,
+    },
+    { status },
+  );
+};
 
 /**
  * Return error based on error type
@@ -25,18 +41,29 @@ const internalErrorResponse = (message: string, debugMessage: any = ""): CustomN
  * @param {string} internalErrorMessage Message if error is internal
  * @returns {CustomNextResponse} NextResponse
  */
-export function errorResponse(error: ZodError): CustomNextResponse
-export function errorResponse(error: any, internalErrorMessage: string): CustomNextResponse
-export function errorResponse(error: ZodError | any, internalErrorMessage: string = ""): CustomNextResponse {
+export function errorResponse(error: ZodError): CustomNextResponse<unknown>;
+export function errorResponse(
+  error: unknown,
+  internalErrorMessage: string,
+  status?: number,
+): CustomNextResponse<unknown>;
+export function errorResponse(
+  error: ZodError | unknown,
+  internalErrorMessage = '',
+  status = 500,
+): CustomNextResponse<unknown> {
   if (error instanceof ZodError) {
-    return inputErrorResponse(error)
+    return inputErrorResponse(error);
   }
-  return internalErrorResponse(internalErrorMessage, error)
+  return internalErrorResponse(internalErrorMessage, error, status);
 }
 
-export const successResponse = (data: any): CustomNextResponse => {
-  return NextResponse.json({
-    status: StatusVariants.SUCCESS,
-    data
-  }, { status: 200 })
-}
+export const successResponse = <T>(data: T): CustomNextResponse<T> => {
+  return NextResponse.json(
+    {
+      status: StatusVariants.SUCCESS,
+      data,
+    },
+    { status: 200 },
+  );
+};

@@ -1,125 +1,102 @@
-import { createMocks, createRequest, RequestMethod, RequestOptions } from 'node-mocks-http'
-import { GET, POST } from '@/app/api/book/route'
-import { Response, StatusVariants } from '@/types/Response'
-import { Book, Prisma } from '@prisma/client'
-import prisma from '@/config/prisma'
-import { createNextRequest } from '@/helpers/MockNextRequest'
-import { NextRequest } from 'next/server'
+import type { Book, Prisma } from '@prisma/client';
 
-createRequest.prototype.json = async function (req: RequestOptions) {
-  return req.body
-}
+import {
+  createBookRaw,
+  createMockRequest,
+  getStatusErrorMessage,
+} from '@/__tests__/utils';
+import { GET, POST } from '@/app/api/book/route';
+import prisma from '@/config/prisma';
+import type { Response } from '@/types/Response';
+import { StatusVariants } from '@/types/Response';
+
+import { createBookData } from './test_data';
 
 describe('/api/book API Endpoint', () => {
-  const bookData: Prisma.BookUncheckedCreateInput = {
-    title: "Test book",
-    genre: ['HORROR'],
-    description: "Test book description",
-    userId: 1
-  }
-
-  const createGetRequest = () => {
-    return createNextRequest({
-      method: 'GET'
-    })
-  }
-
-  const createPostRequest = (body: Prisma.BookUncheckedCreateInput) => {
-    return createNextRequest({
-      method: 'POST',
-      body
-    })
-  }
-
   const createBook = async (bookData: Prisma.BookUncheckedCreateInput) => {
-    await prisma.book.create({ data: bookData })
-  }
+    await createBookRaw(bookData);
+  };
 
   const getBooks = async () => {
-    const req = createGetRequest()
-    const res = await GET(req)
-    const data: Response = await res.json()
-    return { res, data }
-  }
+    const req = createMockRequest({
+      method: 'GET',
+    });
+    const res = await GET(req);
+    const data: Response<Book[]> = await res.json();
+    return { res, data };
+  };
 
   const postBook = async (body: Prisma.BookUncheckedCreateInput) => {
-    const req = createPostRequest(body)
-    const res = await POST(req)
-    const data: Response = await res.json()
-    return { res, data }
-  }
+    const req = createMockRequest({
+      method: 'POST',
+      body,
+    });
+    const res = await POST(req);
+    const data: Response<Book> = await res.json();
+    return { res, data };
+  };
 
-  beforeAll(async () => {
-    await prisma.user.create({
-      data: {
-        name: "test-user",
-        email: "test-user@mail.com"
-      }
-    })
-  })
+  beforeEach(async () => {
+    await prisma.book.deleteMany();
+  });
 
-  afterAll(async () => {
-    await prisma.user.deleteMany()
-  })
-
-  afterEach(async () => {
-    await prisma.book.deleteMany()
-  })
-
-  test("GET empty array: Should return success and empty array", async () => {
-    const { res, data } = await getBooks()
-    expect(res.status).toBe(200)
-    expect(data.status).toEqual(StatusVariants.SUCCESS)
-    // @ts-expect-error
-    expect(data.data).toEqual([])
-  })
-
-  test("GET test book: Should return success and a book", async () => {
-    await createBook(bookData)
-    const { res, data } = await getBooks()
-    expect(res.status).toBe(200)
-    expect(data.status).toEqual(StatusVariants.SUCCESS)
+  test(`GET empty array: Should return ${StatusVariants.SUCCESS} and empty array`, async () => {
+    const { res, data } = await getBooks();
+    expect(res.status).toBe(200);
+    expect(data.status).toEqual(StatusVariants.SUCCESS);
 
     if (data.status !== StatusVariants.SUCCESS) {
-      fail(`ERROR: Status is not success. Status: ${data.status}`)
+      fail(getStatusErrorMessage(StatusVariants.SUCCESS, data.status));
     }
 
-    expect(data.data).toHaveLength(1)
+    expect(data.data).toEqual([]);
+  });
 
-    const db_book_data: Book = data.data[0]
-
-    expect(db_book_data).toEqual(expect.objectContaining(bookData))
-  })
-
-  test("POST valid test book: Should return success and create a book", async () => {
-    const { res, data } = await postBook(bookData)
-
-    expect(res.status).toBe(200)
-    expect(data.status).toEqual(StatusVariants.SUCCESS)
+  test(`GET test book: Should return ${StatusVariants.SUCCESS} and a book`, async () => {
+    await createBook(createBookData);
+    const { res, data } = await getBooks();
+    expect(res.status).toBe(200);
+    expect(data.status).toEqual(StatusVariants.SUCCESS);
 
     if (data.status !== StatusVariants.SUCCESS) {
-      fail(`ERROR: Status is not success. Status: ${data.status}`)
+      fail(getStatusErrorMessage(StatusVariants.SUCCESS, data.status));
     }
 
-    expect(data.data).toEqual(expect.objectContaining(bookData))
-  })
+    expect(data.data).toHaveLength(1);
 
-  test("POST invalid test book: Should return inputError and not create a book", async () => {
-    const invalidBookData = bookData
+    const db_book_data = data.data[0];
 
-    invalidBookData.title = ""
-    invalidBookData.description = ""
+    expect(db_book_data).toEqual(expect.objectContaining(createBookData));
+  });
 
-    const { res, data } = await postBook(invalidBookData)
+  test(`POST valid test book: Should return ${StatusVariants.SUCCESS} and create a book`, async () => {
+    const { res, data } = await postBook(createBookData);
 
-    expect(res.status).toBe(200)
-    expect(data.status).toEqual(StatusVariants.INPUT_ERROR)
+    expect(res.status).toBe(200);
+    expect(data.status).toEqual(StatusVariants.SUCCESS);
+
+    if (data.status !== StatusVariants.SUCCESS) {
+      fail(getStatusErrorMessage(StatusVariants.SUCCESS, data.status));
+    }
+
+    expect(data.data).toEqual(expect.objectContaining(createBookData));
+  });
+
+  test(`POST invalid test book: Should return ${StatusVariants.INPUT_ERROR} and not create a book`, async () => {
+    const invalidBookData = createBookData;
+
+    invalidBookData.title = '';
+    invalidBookData.description = '';
+
+    const { res, data } = await postBook(invalidBookData);
+
+    expect(res.status).toBe(200);
+    expect(data.status).toEqual(StatusVariants.INPUT_ERROR);
 
     if (data.status !== StatusVariants.INPUT_ERROR) {
-      fail(`ERROR: Status is not inputError. Status: ${data.status}`)
+      fail(getStatusErrorMessage(StatusVariants.INPUT_ERROR, data.status));
     }
 
-    expect(data.errors).not.toBeNull()
-  })
-
-})
+    expect(data.errors).not.toBeNull();
+  });
+});
