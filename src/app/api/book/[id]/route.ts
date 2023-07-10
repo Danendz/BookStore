@@ -32,9 +32,9 @@ export async function GET(_: NextRequest, { params }: Params) {
 
 export async function PATCH(req: NextRequest, { params }: Params) {
   let { id }: BookId = params
-  const body = await req.json()
 
   try {
+    const body = await req.json()
     id = parseToUint(id)
 
     await BookPrisma.book.update({

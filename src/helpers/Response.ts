@@ -1,4 +1,4 @@
-import { Response } from "@/types/Response"
+import { Response, StatusVariants } from "@/types/Response"
 import { NextResponse } from "next/server"
 import { ZodError } from "zod"
 import { isDebug } from "./Utils"
@@ -7,14 +7,14 @@ type CustomNextResponse = NextResponse<Response>
 
 const inputErrorResponse = (errors: ZodError): CustomNextResponse => {
   return NextResponse.json({
-    status: "inputError",
+    status: StatusVariants.INPUT_ERROR,
     errors: errors.issues.map((res) => ({ path: res.path, message: res.message }))
   }, { status: 200 })
 }
 
 const internalErrorResponse = (message: string, debugMessage: any = ""): CustomNextResponse => {
   return NextResponse.json({
-    status: "internalError",
+    status: StatusVariants.INTERNAL_ERROR,
     message: isDebug() ? debugMessage : message
   }, { status: 200 })
 }
@@ -36,7 +36,7 @@ export function errorResponse(error: ZodError | any, internalErrorMessage: strin
 
 export const successResponse = (data: any): CustomNextResponse => {
   return NextResponse.json({
-    status: "success",
+    status: StatusVariants.SUCCESS,
     data
   }, { status: 200 })
 }
