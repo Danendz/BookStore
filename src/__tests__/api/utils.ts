@@ -36,12 +36,6 @@ export const createUserRaw = async (name?: string, email?: string) => {
   });
 };
 
-export const createBookRaw = async (
-  bookData: Prisma.BookUncheckedCreateInput,
-) => {
-  await prisma.book.create({ data: bookData });
-};
-
 export const getStatusErrorMessage = (
   expected: StatusVariants,
   got: StatusVariants,
